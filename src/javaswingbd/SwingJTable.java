@@ -6,7 +6,9 @@
 
 package javaswingbd;
 
+import com.mysql.jdbc.CallableStatement;
 import java.sql.ResultSet;
+import java.sql.Types;
 import javax.swing.table.DefaultTableModel;
 /**
  *
@@ -35,14 +37,25 @@ public class SwingJTable extends javax.swing.JFrame {
         try 
         {
             foco=con.abrirConexion();
+            String resultado=null;
+            CallableStatement proc = (CallableStatement) con.getConexion().prepareCall("call prueba(?)");
+            
+            proc.setInt("id", 1);
+            ResultSet res = proc.getResultSet();
+            proc.execute();
+            
             String sql= "select titulo,content,small_photo,big_photo from news";
             ResultSet rs = con.consultar(sql);
-            
+            proc.registerOutParameter("resultado", Types.VARCHAR);//Tipo String
+            // Se ejecuta el procedimiento almacenado
+            proc.execute();            
+            // devuelve el valor del parametro de salida del procedimiento
+            resultado = proc.getString("resultado");
             Object datos[]=new Object[4];//# de columnas de la tabla
             
-            while (rs.next()) {                
+            while (res.next()) {                
                 for (int i = 0; i < 4; i++) {
-                    datos[i]=rs.getObject(i + 1);
+                    datos[i]=res.getObject(i + 1);
                 }
                 modeloTabla.addRow(datos);
             }
@@ -52,6 +65,11 @@ public class SwingJTable extends javax.swing.JFrame {
                 System.out.println(foco+" "+e.toString());
         }
     }
+    
+    
+    
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
